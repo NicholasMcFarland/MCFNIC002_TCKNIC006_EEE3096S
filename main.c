@@ -46,9 +46,10 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+uint64_t START_ADDRESS = 0x08000000;
 
 static uint8_t freqFlag = 0;
-
+static uint8_t arrIdx = 0;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
