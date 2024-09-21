@@ -47,6 +47,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+static uint8_t freqFlag = 0;
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -60,19 +62,7 @@ TIM_HandleTypeDef htim16;
 
 // TODO: Define input variables
 
-uint8_t pattern[6] = {
-				0b10101010,
-				0b01010101,
-				0b11001100,
-				0b00110011,
-				0b11110000,
-				0b00001111
-};
 
-uint32_t address = 0x08000000;
-uint32_t count = 0;
-uint8_t current_pattern = 0;
-static uint32_t freq_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -148,12 +138,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Start PWM on TIM3 Channel 3
 
   // TODO: Write all bytes to EEPROM using "write_to_address"
-  //write_to_address(uint16_t address, uint8_t data)
   
-  for(int i = 0; i < 6; i++){
-
-	  write_to_address(address + i, pattern[i]);
-  }
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,11 +149,9 @@ int main(void)
 
 	// TODO: Poll ADC
 
-    uint32_t adc_val = pollADC();
 
 	// TODO: Get CRR
   
-    CCR = ADCtoCCR(adc_val);
 
   // Update PWM value
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR);
@@ -462,32 +446,24 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void EXTI0_1_IRQHandler(void)
 {
-	// TODO: Add code to switch LED7 delay frequency
+	static uint32_t last_interrupt_time = 0;
+	uint32_t current_time = HAL_GetTick();
+
+	if (current_time - last_interrupt_time > 200) // 200ms debounce
+		{
+		last_interrupt_time = current_time;
 	
+		// TODO: Add code to switch LED7 delay frequency
+		if (freqFlag == 0){
+			htim6.Init.Period = 1000-1;
+		}
+		if (freqFlag == 1){
+			htim6.Init.Period = 500-1;
+		}
 
-   static uint32_t last_interrupt_time = 0;
-   uint32_t current_time = HAL_GetTick();
-
-   if (current_time - last_interrupt_time > 200) // 200ms debounce
-   		{
-   			last_interrupt_time = current_time;
-
-   			if(freq_flag == 1)
-   				{
-   				//htim6.Init.Period = 500-1;
-   				__HAL_TIM_SET_AUTORELOAD(&htim6,500-1);
-   				}
-   			else{
-
-   				//htim6.Init.Period = 250-1;
-   				__HAL_TIM_SET_AUTORELOAD(&htim6,1000-1);
-   			}
-   			freq_flag = (freq_flag + 1) % 2;
-   			//HAL_TIM_Base_Init(&htim6);
-   			//__HAL_TIM_SET_AUTORELOAD(&htim6,);
-   		}
-
-
+		freqFlag = (freqFlag + 1)%2;
+		HAL_TIM_Base_Init(&htim6);
+		}
 	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
 }
 
@@ -506,43 +482,17 @@ void TIM16_IRQHandler(void)
 	HAL_TIM_IRQHandler(&htim16);
 
 	// TODO: Initialise a string to output second line on LCD
-    //count = count (since 6 patterns take mod 6
-
-	uint32_t value = read_from_address(address + count);
-	   if (value != pattern[count]){
-	    	// for testing
-	    	char array[32];
-	    	sprintf(array, "%d",value);
-	    	//writeLCD(array);
-	    	writeLCD("SPI ERROR");
-	    	//count = (count + 1) % 6;
-
-	   }
-
-	   else{
-		   char array[32];
-		   sprintf(array, "%d",value);
-		   writeLCD(array);
-		   //count = (count + 1) % 6;
-	   }
-	   count = (count + 1) % 6;
-	    	//for final version
-
 
 
 	// TODO: Change LED pattern; output 0x01 if the read SPI data is incorrect
 	
-
+  
 
 }
 
 // TODO: Complete the writeLCD function
 void writeLCD(char *char_in){
   delay(3000);
-	lcd_command(CLEAR);
-	lcd_putstring("EEPROM byte:");
-	lcd_command(LINE_TWO);
-	lcd_putstring(char_in);
 	
   
 }
@@ -559,12 +509,8 @@ uint32_t pollADC(void){
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
-    const uint32_t ARR = 47999;
-    const uint32_t ADC_MAX = 4095;
 
-    // Calculate CCR value using precise scaling
-    uint32_t val = (adc_val * ARR) / ADC_MAX;
-	return val;
+	//return val;
 }
 
 void ADC1_COMP_IRQHandler(void)
