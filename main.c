@@ -148,9 +148,10 @@ int main(void)
   {
 
 	// TODO: Poll ADC
-
+	  uint32_t val = pollADC();
 
 	// TODO: Get CRR
+	  CCR = ADCtoCCR(val);
   
 
   // Update PWM value
@@ -508,9 +509,11 @@ uint32_t pollADC(void){
 
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
-  // TODO: Calculate CCR value (val) using an appropriate equation
+	// TODO: Calculate CCR value (val) using an appropriate equation
+	// 12 bit adc = 4096 as max value
+	// period of tim3 = 47999
 
-	//return val;
+	return (adc_val * 47999) / 4096;
 }
 
 void ADC1_COMP_IRQHandler(void)
