@@ -504,21 +504,14 @@ void TIM16_IRQHandler(void)
 {
 	// Acknowledge interrupt
 	HAL_TIM_IRQHandler(&htim16);
-
 	// TODO: Initialise a string to output second line on LCD
     //count = count (since 6 patterns take mod 6
 
 	uint32_t value = read_from_address(address + count);
-	   if (value != pattern[count]){
-	    	// for testing
-	    	char array[32];
-	    	sprintf(array, "%d",value);
-	    	//writeLCD(array);
+	   if (value != pattern[count]){	    
 	    	writeLCD("SPI ERROR");
 	    	//count = (count + 1) % 6;
-
 	   }
-
 	   else{
 		   char array[32];
 		   sprintf(array, "%d",value);
@@ -526,7 +519,7 @@ void TIM16_IRQHandler(void)
 		   //count = (count + 1) % 6;
 	   }
 	   count = (count + 1) % 6;
-	    	//for final version
+	    	
 
 
 
