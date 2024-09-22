@@ -543,8 +543,6 @@ void writeLCD(char *char_in){
 	lcd_putstring("EEPROM byte:");
 	lcd_command(LINE_TWO);
 	lcd_putstring(char_in);
-	
-  
 }
 
 // Get ADC value
